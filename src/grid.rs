@@ -48,6 +48,8 @@ impl Display for Grid {
 
 impl Grid {
     pub fn new(size: u32) -> Self {
+        assert!(size > 0, "Grid must have a size greater than 0");
+
         let grid = (0..size)
             .map(|_| (0..size).map(|_| Space::default()).collect())
             .collect();
@@ -140,10 +142,13 @@ mod tests {
     }
 
     #[test]
-    fn grid_new() {
-        let grid_0 = Grid(vec![]);
-        assert_eq!(Grid::new(0), grid_0);
+    #[should_panic]
+    fn disallows_size_0_grids() {
+        let _grid = Grid::new(0);
+    }
 
+    #[test]
+    fn grid_new() {
         let grid_1 = Grid(vec![vec![Space(None)]]);
         assert_eq!(Grid::new(1), grid_1);
 
