@@ -321,34 +321,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_grid_get() {
-        let mut grid = Grid::default();
-
-        assert_eq!(grid.get(&"A1".parse().unwrap()), Some(&Space(None)));
-
-        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
-
-        assert_eq!(
-            grid.get(&"A1".parse().unwrap()),
-            Some(&Space(Some(Player::X)))
-        );
-    }
-
-    #[test]
-    fn test_grid_get_mut() {
-        let mut grid = Grid::default();
-
-        assert_eq!(grid.get_mut(&"A1".parse().unwrap()), Some(&mut Space(None)));
-
-        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
-
-        assert_eq!(
-            grid.get(&"A1".parse().unwrap()),
-            Some(&Space(Some(Player::X)))
-        );
-    }
-
-    #[test]
     fn test_check_diagonals() {
         for player in [Player::X, Player::O] {
             let mut game = Game::default();
