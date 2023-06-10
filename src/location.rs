@@ -4,6 +4,9 @@ use std::{
     str::FromStr,
 };
 
+// To get uppercase A-Z starting at 0
+const CHAR_OFFSET: u8 = 65;
+
 /// Represents a row / column coordinate on the [Grid].
 #[derive(Debug, PartialEq)]
 pub struct Location(pub u8, pub u8);
@@ -70,7 +73,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_location_from_str() {
+    fn location_from_str() {
         assert_eq!("A1".parse::<Location>().unwrap(), Location(0, 0));
         assert_eq!("B1".parse::<Location>().unwrap(), Location(1, 0));
         assert_eq!("C1".parse::<Location>().unwrap(), Location(2, 0));
@@ -83,18 +86,31 @@ mod tests {
     }
 
     #[test]
-    fn test_location_from_almost_valid_input() {
+    fn location_from_str_case_insensitivity() {
+        assert_eq!("a1".parse::<Location>().unwrap(), Location(0, 0));
+        assert_eq!("b1".parse::<Location>().unwrap(), Location(1, 0));
+        assert_eq!("c1".parse::<Location>().unwrap(), Location(2, 0));
+        assert_eq!("a2".parse::<Location>().unwrap(), Location(0, 1));
+        assert_eq!("b2".parse::<Location>().unwrap(), Location(1, 1));
+        assert_eq!("c2".parse::<Location>().unwrap(), Location(2, 1));
+        assert_eq!("a3".parse::<Location>().unwrap(), Location(0, 2));
+        assert_eq!("b3".parse::<Location>().unwrap(), Location(1, 2));
+        assert_eq!("c3".parse::<Location>().unwrap(), Location(2, 2));
+    }
+
+    #[test]
+    fn location_from_almost_valid_input() {
         assert!("B22222".parse::<Location>().is_err());
         assert!("AA2".parse::<Location>().is_err());
     }
 
     #[test]
-    fn test_location_from_invalid_column() {
-        assert!("D1".parse::<Location>().is_err())
+    fn location_from_invalid_column() {
+        assert!("[1".parse::<Location>().is_err())
     }
 
     #[test]
-    fn test_location_from_invalid_row() {
-        assert!("C4".parse::<Location>().is_err());
+    fn location_from_invalid_row() {
+        assert!("C27".parse::<Location>().is_err());
     }
 }
