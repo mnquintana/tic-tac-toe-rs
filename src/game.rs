@@ -298,17 +298,13 @@ impl Game {
             let mut input = String::new();
             io::stdin().read_line(&mut input)?;
 
-            let loc = input.parse();
-            let did_update = match loc {
-                Ok(loc) => self.make_move(&loc),
-                Err(_) => continue,
-            };
+            if let Ok(loc) = input.parse() {
+                if self.make_move(&loc).is_ok() {
+                    self.outcome = self.determine_outcome();
 
-            if did_update.is_ok() {
-                self.outcome = self.determine_outcome();
-
-                if self.outcome == Outcome::InProgress {
-                    self.advance_turn();
+                    if self.outcome == Outcome::InProgress {
+                        self.advance_turn();
+                    }
                 }
             }
         }
