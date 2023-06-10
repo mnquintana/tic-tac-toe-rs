@@ -1,9 +1,11 @@
 use crate::game::{Location, Player, Space};
 use std::fmt::{self, Display};
 
+const SIZE: usize = 3;
+
 /// Represents the Tic Tac Toe game board.
 #[derive(Debug, Default, PartialEq)]
-pub struct Grid(pub [[Space; 3]; 3]);
+pub struct Grid([[Space; SIZE]; SIZE]);
 
 impl Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -37,12 +39,36 @@ impl Display for Grid {
 }
 
 impl Grid {
-    pub fn new() -> Self {
+    pub fn new(_size: u32) -> Self {
         Grid::default()
     }
 
-    pub fn rows(&self) -> impl Iterator<Item = &[Space; 3]> {
-        self.0.iter()
+    pub fn rows(&self) -> impl Iterator<Item = Vec<Space>> + '_ {
+        self.0.iter().map(|row| row.to_vec())
+    }
+
+    pub fn columns(&self) -> impl Iterator<Item = Vec<Space>> + '_ {
+        (0..self.0.len()).map(|i| self.0.iter().map(|inner| inner[i]).collect::<Vec<_>>())
+    }
+
+    pub fn diagonals(&self) -> impl Iterator<Item = Vec<&Space>> + '_ {
+        let primary: Vec<_> = (0..self.0.len())
+            .map(|n| {
+                self.get(&Location(n as u8, n as u8))
+                    .unwrap_or(&Space(None))
+            })
+            .collect();
+
+        let secondary: Vec<_> = (0..self.0.len())
+            .rev()
+            .map(|n| {
+                let loc = Location(n as u8, (self.0.len() - n - 1) as u8);
+
+                self.get(&loc).unwrap_or(&Space(None))
+            })
+            .collect();
+
+        vec![primary, secondary].into_iter()
     }
 
     /// Gets a read-only reference to a [Space] on the game board.
@@ -78,5 +104,21 @@ impl Grid {
                 space_to_update.0.expect("Space is Some()")
             ))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_grid_default() {
+        let default_grid = Grid([
+            [Space(None), Space(None), Space(None)],
+            [Space(None), Space(None), Space(None)],
+            [Space(None), Space(None), Space(None)],
+        ]);
+
+        assert_eq!(Grid::default(), default_grid);
     }
 }

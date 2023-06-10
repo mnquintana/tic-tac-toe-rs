@@ -54,7 +54,6 @@ impl Display for Location {
         write!(f, "{self:?}")
     }
 }
-
 /// The [Location] could not be parsed from the string.
 #[derive(Debug, Clone)]
 pub struct LocationParseStrError {
@@ -200,7 +199,7 @@ impl Game {
             outcome: Outcome::InProgress,
             current_player: Player::X,
             turn: 1,
-            grid: Grid::new(),
+            grid: Grid::new(3),
         }
     }
 
@@ -270,28 +269,7 @@ impl Game {
 
     /// Checks if any player has won on the two diagonals.
     pub(self) fn check_diagonals(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
-        let primary: Vec<_> = (0..grid.len())
-            .map(|n| {
-                self.grid
-                    .get(&Location(n as u8, n as u8))
-                    .unwrap_or(&Space(None))
-            })
-            .collect();
-
-        let secondary: Vec<_> = (0..grid.len())
-            .rev()
-            .map(|n| {
-                let loc = Location(n as u8, (grid.len() - n - 1) as u8);
-
-                self.grid.get(&loc).unwrap_or(&Space(None))
-            })
-            .collect();
-
-        let diagonals = vec![primary, secondary];
-
-        diagonals.iter().any(|diagonal| {
+        self.grid.diagonals().any(|diagonal| {
             diagonal.iter().all(|&space| {
                 let first_space = diagonal.first().map(|s| **s).unwrap_or_default();
 
@@ -313,16 +291,12 @@ impl Game {
 
     /// Checks if any [Player] has won in any of the columns on the game board.
     pub(self) fn check_columns(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
-        (0..grid.len())
-            .map(|i| grid.iter().map(|inner| inner[i]).collect::<Vec<_>>())
-            .any(|column| {
-                column.iter().all(|space| {
-                    let first_space = column.first().copied().unwrap_or_default();
-                    *space == first_space && space.0.is_some()
-                })
+        self.grid.columns().any(|column| {
+            column.iter().all(|space| {
+                let first_space = column.first().copied().unwrap_or_default();
+                *space == first_space && space.0.is_some()
             })
+        })
     }
 
     /// Checks if any [Player] has any column, row, or diagonal on the game board.
@@ -334,11 +308,10 @@ impl Game {
     ///
     /// There's a draw if there's no win and every space is occupied.
     pub(self) fn check_for_draw(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
         !self.check_for_win()
-            && !grid
-                .iter()
+            && !self
+                .grid
+                .rows()
                 .any(|row| row.iter().any(|&space| space.0.is_none()))
     }
 
@@ -388,17 +361,6 @@ mod tests {
     }
 
     #[test]
-    fn test_grid_default() {
-        let default_grid = Grid([
-            [Space(None), Space(None), Space(None)],
-            [Space(None), Space(None), Space(None)],
-            [Space(None), Space(None), Space(None)],
-        ]);
-
-        assert_eq!(Grid::default(), default_grid);
-    }
-
-    #[test]
     fn test_location_from_almost_valid_input() {
         assert!("B22222".parse::<Location>().is_err());
         assert!("AA2".parse::<Location>().is_err());
@@ -416,7 +378,7 @@ mod tests {
 
     #[test]
     fn test_grid_get() {
-        let mut grid = Grid::new();
+        let mut grid = Grid::default();
 
         assert_eq!(grid.get(&"A1".parse().unwrap()), Some(&Space(None)));
 
@@ -430,7 +392,7 @@ mod tests {
 
     #[test]
     fn test_grid_get_mut() {
-        let mut grid = Grid::new();
+        let mut grid = Grid::default();
 
         assert_eq!(grid.get_mut(&"A1".parse().unwrap()), Some(&mut Space(None)));
 
