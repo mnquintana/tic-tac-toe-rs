@@ -4,8 +4,8 @@ use std::{
     str::FromStr,
 };
 
-// To get uppercase A-Z starting at 0
-const CHAR_OFFSET: u8 = 65;
+// To get lowercase a-z starting at 0
+const CHAR_OFFSET: u8 = 97;
 
 /// Represents a row / column coordinate on the [Grid].
 #[derive(Debug, PartialEq)]
@@ -32,7 +32,7 @@ impl FromStr for Location {
     type Err = LocationParseStrError;
 
     fn from_str(loc: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^([a-c])([1-3])$").map_err(|_| LocationParseStrError {
+        let re = Regex::new(r"^([a-z])(\d{1,2})$").map_err(|_| LocationParseStrError {
             loc: loc.to_string(),
         })?;
         let loc = loc.to_lowercase();
@@ -46,7 +46,11 @@ impl FromStr for Location {
             .ok_or(LocationParseStrError {
                 loc: loc.to_string(),
             })?
-            .as_str();
+            .as_str()
+            .chars()
+            .last()
+            .expect("Column should be 1 letter");
+
         let row = captures
             .get(2)
             .ok_or(LocationParseStrError {
@@ -54,17 +58,19 @@ impl FromStr for Location {
             })?
             .as_str();
 
-        let column = match column {
-            "a" => 0,
-            "b" => 1,
-            "c" => 2,
-            _ => unreachable!(),
-        };
+        let column = (column as u8) - CHAR_OFFSET;
+
         let row = row.parse::<u8>().map_err(|_| LocationParseStrError {
             loc: loc.to_string(),
         })? - 1;
 
-        Ok(Self(column, row))
+        if (0..26).contains(&row) {
+            Ok(Self(column, row))
+        } else {
+            Err(LocationParseStrError {
+                loc: loc.to_string(),
+            })
+        }
     }
 }
 
@@ -112,5 +118,17 @@ mod tests {
     #[test]
     fn location_from_invalid_row() {
         assert!("C27".parse::<Location>().is_err());
+    }
+
+    #[test]
+    fn location_from_str_validate_range() {
+        let columns = 'a'..='z';
+        let rows = 1..=26;
+
+        for (i, (column, row)) in columns.zip(rows).enumerate() {
+            let loc = format!("{column}{row}");
+
+            assert_eq!(loc.parse::<Location>().unwrap(), Location(i as u8, i as u8));
+        }
     }
 }
