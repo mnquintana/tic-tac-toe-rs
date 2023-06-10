@@ -1,7 +1,7 @@
 use core::time;
 use regex::Regex;
 use std::collections::HashMap;
-use std::fmt::Display;
+use std::fmt::{self, Display};
 use std::io;
 use std::str::FromStr;
 use std::thread;
@@ -21,8 +21,8 @@ pub enum Player {
 }
 
 impl Display for Player {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 
@@ -35,7 +35,7 @@ pub enum Outcome {
 }
 
 impl Display for Outcome {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Outcome::Draw => writeln!(f, "Draw"),
             Outcome::InProgress => writeln!(f, "Match in progress"),
@@ -55,7 +55,7 @@ pub struct LocationParseStrError {
 }
 
 impl Display for LocationParseStrError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Location cannot be parsed from {}. Locations must be of the format [a-c][1-3], e.g. a1", self.loc)
     }
 }
@@ -105,7 +105,7 @@ impl FromStr for Location {
 pub struct Grid([[Space; 3]; 3]);
 
 impl Display for Grid {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let Grid(grid) = self;
 
         let mut result = grid
@@ -131,13 +131,13 @@ impl Display for Grid {
 
         let result = result.join("\n");
 
-        writeln!(f, "{}", result)
+        writeln!(f, "{result}")
     }
 }
 
 impl Grid {
     pub fn new() -> Self {
-        Default::default()
+        Grid::default()
     }
 
     /// Gets a read-only reference to a [Space] on the game board.
@@ -195,7 +195,7 @@ impl Display for Score {
             .collect::<String>();
 
         writeln!(f, "SCORE:")?;
-        writeln!(f, "{}", output)
+        writeln!(f, "{output}")
     }
 }
 
@@ -219,7 +219,7 @@ impl TicTacToe {
     /// Starts the main Tic Tic Tac Toe game loop, managing the lifecycle of [Game]s
     /// and keeping track of any cross-game state (like the [Score]).
     ///
-    /// When the game is over (ie. has an [Outcome] other than [Outcome::InProgress]),
+    /// When the game is over (ie. has an [Outcome] other than [`Outcome::InProgress`]),
     /// the game loop will drop the currently active [Game] and create a new one.
     pub fn start(&mut self) -> io::Result<()> {
         loop {
