@@ -114,10 +114,11 @@ impl Grid {
         grid.get_mut(*y as usize)?.get_mut(*x as usize)
     }
 
-    /// Updates a [Space] at a [Location] to be occupied by the provided [Player].
+    /// Updates a [`Space`] at a [`Location`] to be occupied by the provided [`Player`].
     pub fn update(&mut self, loc: &Location, player: Player) -> Result<(), String> {
-        let default = &mut Space(None);
-        let space_to_update = self.get_mut(loc).unwrap_or(default);
+        let space_to_update = self
+            .get_mut(loc)
+            .ok_or(format!("The space at {loc} is out of bounds"))?;
 
         if space_to_update.0.is_none() {
             *space_to_update = Space(Some(player));
@@ -202,6 +203,16 @@ mod tests {
         assert_eq!(
             grid.get(&"A1".parse().unwrap()),
             Some(&Space(Some(Player::X)))
+        );
+    }
+
+    #[test]
+    fn grid_update() {
+        let mut grid = Grid::default();
+
+        assert!(
+            grid.update(&"A6".parse().unwrap(), Player::X).is_err(),
+            "Out of bounds locations should error out"
         );
     }
 }
