@@ -1,11 +1,19 @@
 use crate::game::{Location, Player, Space};
 use std::fmt::{self, Display};
 
-const SIZE: usize = 3;
-
 /// Represents the Tic Tac Toe game board.
-#[derive(Debug, Default, PartialEq)]
-pub struct Grid([[Space; SIZE]; SIZE]);
+#[derive(Debug, PartialEq)]
+pub struct Grid(Vec<Vec<Space>>);
+
+impl Default for Grid {
+    fn default() -> Self {
+        Grid(vec![
+            vec![Space::default(), Space::default(), Space::default()],
+            vec![Space::default(), Space::default(), Space::default()],
+            vec![Space::default(), Space::default(), Space::default()],
+        ])
+    }
+}
 
 impl Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -39,8 +47,12 @@ impl Display for Grid {
 }
 
 impl Grid {
-    pub fn new(_size: u32) -> Self {
-        Grid::default()
+    pub fn new(size: u32) -> Self {
+        let grid = (0..size)
+            .map(|_| (0..size).map(|_| Space::default()).collect())
+            .collect();
+
+        Grid(grid)
     }
 
     pub fn rows(&self) -> impl Iterator<Item = Vec<Space>> + '_ {
@@ -113,12 +125,34 @@ mod tests {
 
     #[test]
     fn test_grid_default() {
-        let default_grid = Grid([
-            [Space(None), Space(None), Space(None)],
-            [Space(None), Space(None), Space(None)],
-            [Space(None), Space(None), Space(None)],
+        let default_grid = Grid(vec![
+            vec![Space(None), Space(None), Space(None)],
+            vec![Space(None), Space(None), Space(None)],
+            vec![Space(None), Space(None), Space(None)],
         ]);
 
         assert_eq!(Grid::default(), default_grid);
+    }
+
+    #[test]
+    fn new_grid_of_size_3_is_default() {
+        assert_eq!(Grid::new(3), Grid::default())
+    }
+
+    #[test]
+    fn grid_new() {
+        let grid_0 = Grid(vec![]);
+        assert_eq!(Grid::new(0), grid_0);
+
+        let grid_1 = Grid(vec![vec![Space(None)]]);
+        assert_eq!(Grid::new(1), grid_1);
+
+        let grid_4 = Grid(vec![
+            vec![Space(None), Space(None), Space(None), Space(None)],
+            vec![Space(None), Space(None), Space(None), Space(None)],
+            vec![Space(None), Space(None), Space(None), Space(None)],
+            vec![Space(None), Space(None), Space(None), Space(None)],
+        ]);
+        assert_eq!(Grid::new(4), grid_4);
     }
 }
