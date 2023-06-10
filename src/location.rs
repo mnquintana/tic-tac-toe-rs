@@ -64,3 +64,37 @@ impl FromStr for Location {
         Ok(Self(column, row))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_location_from_str() {
+        assert_eq!("A1".parse::<Location>().unwrap(), Location(0, 0));
+        assert_eq!("B1".parse::<Location>().unwrap(), Location(1, 0));
+        assert_eq!("C1".parse::<Location>().unwrap(), Location(2, 0));
+        assert_eq!("A2".parse::<Location>().unwrap(), Location(0, 1));
+        assert_eq!("B2".parse::<Location>().unwrap(), Location(1, 1));
+        assert_eq!("C2".parse::<Location>().unwrap(), Location(2, 1));
+        assert_eq!("A3".parse::<Location>().unwrap(), Location(0, 2));
+        assert_eq!("B3".parse::<Location>().unwrap(), Location(1, 2));
+        assert_eq!("C3".parse::<Location>().unwrap(), Location(2, 2));
+    }
+
+    #[test]
+    fn test_location_from_almost_valid_input() {
+        assert!("B22222".parse::<Location>().is_err());
+        assert!("AA2".parse::<Location>().is_err());
+    }
+
+    #[test]
+    fn test_location_from_invalid_column() {
+        assert!("D1".parse::<Location>().is_err())
+    }
+
+    #[test]
+    fn test_location_from_invalid_row() {
+        assert!("C4".parse::<Location>().is_err());
+    }
+}
