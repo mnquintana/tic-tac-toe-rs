@@ -295,7 +295,7 @@ fn clear_screen() {
 
 #[cfg(test)]
 mod tests {
-    use crate::game::*;
+    use super::*;
 
     #[test]
     fn test_grid_get() {
