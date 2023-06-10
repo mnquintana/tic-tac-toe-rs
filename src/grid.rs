@@ -22,22 +22,19 @@ impl Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let Grid(grid) = self;
 
-        let mut result = grid
-            .iter()
-            .enumerate()
-            .map(|(i, row)| {
-                let mut row = row
-                    .iter()
-                    .map(|space| space.to_string())
+        let column_header = std::iter::once("    A | B | C".to_string());
+
+        let result = column_header
+            .chain(grid.iter().enumerate().map(|(i, row)| {
+                let row_header = std::iter::once(format!("{}", i + 1));
+
+                let row = row_header
+                    .chain(row.iter().map(|space| space.to_string()))
                     .collect::<Vec<_>>();
 
-                row.insert(0, format!("{}", i + 1));
-
                 row.join(" | ")
-            })
+            }))
             .collect::<Vec<_>>();
-
-        result.insert(0, "    A | B | C".to_string());
 
         let result = result.join("\n");
 
