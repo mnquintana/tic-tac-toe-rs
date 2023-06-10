@@ -93,13 +93,7 @@ pub struct TicTacToe {
 
 impl TicTacToe {
     pub fn new() -> Self {
-        let grid_size = 3;
-
-        Self {
-            score: Score::new(),
-            game: Game::new(grid_size),
-            grid_size,
-        }
+        Self { ..Self::default() }
     }
 
     /// Starts the main Tic Tic Tac Toe game loop, managing the lifecycle of [Game]s
@@ -145,6 +139,18 @@ pub struct Game {
 
     /// A grid representing the Tic Tac Toe board.
     grid: Grid,
+}
+
+impl Default for TicTacToe {
+    fn default() -> Self {
+        let grid_size = 3;
+
+        Self {
+            score: Score::new(),
+            game: Game::new(grid_size),
+            grid_size,
+        }
+    }
 }
 
 impl Game {
