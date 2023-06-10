@@ -1,4 +1,5 @@
-use crate::game::{Location, Player, Space};
+use crate::game::{Player, Space};
+use crate::location::Location;
 use std::fmt::{self, Display};
 
 // To get uppercase A-Z starting at 0
@@ -113,10 +114,11 @@ impl Grid {
         grid.get_mut(*y as usize)?.get_mut(*x as usize)
     }
 
-    /// Updates a [Space] at a [Location] to be occupied by the provided [Player].
+    /// Updates a [`Space`] at a [`Location`] to be occupied by the provided [`Player`].
     pub fn update(&mut self, loc: &Location, player: Player) -> Result<(), String> {
-        let default = &mut Space(None);
-        let space_to_update = self.get_mut(loc).unwrap_or(default);
+        let space_to_update = self
+            .get_mut(loc)
+            .ok_or(format!("The space at {loc} is out of bounds"))?;
 
         if space_to_update.0.is_none() {
             *space_to_update = Space(Some(player));
@@ -174,5 +176,43 @@ mod tests {
             vec![Space(None), Space(None), Space(None), Space(None)],
         ]);
         assert_eq!(Grid::new(4), grid_4);
+    }
+
+    #[test]
+    fn test_grid_get() {
+        let mut grid = Grid::default();
+
+        assert_eq!(grid.get(&"A1".parse().unwrap()), Some(&Space(None)));
+
+        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
+
+        assert_eq!(
+            grid.get(&"A1".parse().unwrap()),
+            Some(&Space(Some(Player::X)))
+        );
+    }
+
+    #[test]
+    fn test_grid_get_mut() {
+        let mut grid = Grid::default();
+
+        assert_eq!(grid.get_mut(&"A1".parse().unwrap()), Some(&mut Space(None)));
+
+        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
+
+        assert_eq!(
+            grid.get(&"A1".parse().unwrap()),
+            Some(&Space(Some(Player::X)))
+        );
+    }
+
+    #[test]
+    fn grid_update() {
+        let mut grid = Grid::default();
+
+        assert!(
+            grid.update(&"A6".parse().unwrap(), Player::X).is_err(),
+            "Out of bounds locations should error out"
+        );
     }
 }

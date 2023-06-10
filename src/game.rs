@@ -1,10 +1,9 @@
 use crate::grid::Grid;
+use crate::location::Location;
 use core::time;
-use regex::Regex;
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::io;
-use std::str::FromStr;
 use std::thread;
 
 /// A space on a Tic Tac Toe [Grid]. During their turn, a [Player] makes
@@ -57,67 +56,6 @@ impl Display for Outcome {
     }
 }
 
-/// Represents a row / column coordinate on the [Grid].
-#[derive(Debug, PartialEq)]
-pub struct Location(pub u8, pub u8);
-
-impl Display for Location {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-/// The [Location] could not be parsed from the string.
-#[derive(Debug, Clone)]
-pub struct LocationParseStrError {
-    loc: String,
-}
-
-impl Display for LocationParseStrError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Location cannot be parsed from {}. Locations must be of the format [a-c][1-3], e.g. a1", self.loc)
-    }
-}
-
-impl FromStr for Location {
-    type Err = LocationParseStrError;
-
-    fn from_str(loc: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^([a-c])([1-3])$").map_err(|_| LocationParseStrError {
-            loc: loc.to_string(),
-        })?;
-        let loc = loc.to_lowercase();
-        let text = loc.trim();
-        let captures = re.captures(text).ok_or(LocationParseStrError {
-            loc: loc.to_string(),
-        })?;
-
-        let column = captures
-            .get(1)
-            .ok_or(LocationParseStrError {
-                loc: loc.to_string(),
-            })?
-            .as_str();
-        let row = captures
-            .get(2)
-            .ok_or(LocationParseStrError {
-                loc: loc.to_string(),
-            })?
-            .as_str();
-
-        let column = match column {
-            "a" => 0,
-            "b" => 1,
-            "c" => 2,
-            _ => unreachable!(),
-        };
-        let row = row.parse::<u8>().map_err(|_| LocationParseStrError {
-            loc: loc.to_string(),
-        })? - 1;
-
-        Ok(Self(column, row))
-    }
-}
-
 /// The score for both [Player]s after `n` games of Tic Tac Toe.
 #[derive(Debug)]
 struct Score(HashMap<Player, u32>);
@@ -150,13 +88,15 @@ impl Display for Score {
 pub struct TicTacToe {
     score: Score,
     game: Game,
+    grid_size: u8,
 }
 
 impl TicTacToe {
-    pub fn new() -> Self {
+    pub fn new(grid_size: u8) -> Self {
         Self {
-            score: Score::new(),
-            game: Game::new(),
+            game: Game::new(grid_size),
+            grid_size,
+            ..Self::default()
         }
     }
 
@@ -187,7 +127,7 @@ impl TicTacToe {
 
             thread::sleep(time::Duration::from_secs(1));
 
-            self.game = Game::new();
+            self.game = Game::new(self.grid_size);
         }
     }
 }
@@ -205,13 +145,23 @@ pub struct Game {
     grid: Grid,
 }
 
-impl Game {
-    pub fn new() -> Self {
+impl Default for TicTacToe {
+    fn default() -> Self {
+        let grid_size = 3;
+
         Self {
-            outcome: Outcome::InProgress,
-            current_player: Player::X,
-            turn: 1,
-            grid: Grid::new(3),
+            score: Score::new(),
+            game: Game::new(grid_size),
+            grid_size,
+        }
+    }
+}
+
+impl Game {
+    pub fn new(grid_size: u8) -> Self {
+        Game {
+            grid: Grid::new(grid_size),
+            ..Game::default()
         }
     }
 
@@ -347,9 +297,20 @@ impl Game {
     }
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Game {
+            outcome: Outcome::InProgress,
+            current_player: Player::X,
+            turn: 1,
+            grid: Grid::new(3),
+        }
+    }
+}
+
 /// Clears the terminal screen. Useful for faking a frame of animation after
 /// making some change.
-fn clear_screen() {
+pub fn clear_screen() {
     // Clears the screen by sending a control character,
     // courtesy of https://stackoverflow.com/questions/34837011/how-to-clear-the-terminal-screen-in-rust-after-a-new-line-is-printed
     print!("\x1B[2J\x1B[1;1H");
@@ -357,69 +318,12 @@ fn clear_screen() {
 
 #[cfg(test)]
 mod tests {
-    use crate::game::*;
-
-    #[test]
-    fn test_location_from_str() {
-        assert_eq!("A1".parse::<Location>().unwrap(), Location(0, 0));
-        assert_eq!("B1".parse::<Location>().unwrap(), Location(1, 0));
-        assert_eq!("C1".parse::<Location>().unwrap(), Location(2, 0));
-        assert_eq!("A2".parse::<Location>().unwrap(), Location(0, 1));
-        assert_eq!("B2".parse::<Location>().unwrap(), Location(1, 1));
-        assert_eq!("C2".parse::<Location>().unwrap(), Location(2, 1));
-        assert_eq!("A3".parse::<Location>().unwrap(), Location(0, 2));
-        assert_eq!("B3".parse::<Location>().unwrap(), Location(1, 2));
-        assert_eq!("C3".parse::<Location>().unwrap(), Location(2, 2));
-    }
-
-    #[test]
-    fn test_location_from_almost_valid_input() {
-        assert!("B22222".parse::<Location>().is_err());
-        assert!("AA2".parse::<Location>().is_err());
-    }
-
-    #[test]
-    fn test_location_from_invalid_column() {
-        assert!("D1".parse::<Location>().is_err())
-    }
-
-    #[test]
-    fn test_location_from_invalid_row() {
-        assert!("C4".parse::<Location>().is_err());
-    }
-
-    #[test]
-    fn test_grid_get() {
-        let mut grid = Grid::default();
-
-        assert_eq!(grid.get(&"A1".parse().unwrap()), Some(&Space(None)));
-
-        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
-
-        assert_eq!(
-            grid.get(&"A1".parse().unwrap()),
-            Some(&Space(Some(Player::X)))
-        );
-    }
-
-    #[test]
-    fn test_grid_get_mut() {
-        let mut grid = Grid::default();
-
-        assert_eq!(grid.get_mut(&"A1".parse().unwrap()), Some(&mut Space(None)));
-
-        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
-
-        assert_eq!(
-            grid.get(&"A1".parse().unwrap()),
-            Some(&Space(Some(Player::X)))
-        );
-    }
+    use super::*;
 
     #[test]
     fn test_check_diagonals() {
         for player in [Player::X, Player::O] {
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             assert!(!game.check_diagonals());
 
@@ -430,7 +334,7 @@ mod tests {
 
             assert!(game.check_diagonals());
 
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             // Secondary diagonal
             assert!(game.grid.update(&"C1".parse().unwrap(), player).is_ok());
@@ -444,7 +348,7 @@ mod tests {
     #[test]
     fn test_check_rows() {
         for player in [Player::X, Player::O] {
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             assert!(!game.check_rows());
 
@@ -459,7 +363,7 @@ mod tests {
     #[test]
     fn test_check_columns() {
         for player in [Player::X, Player::O] {
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             assert!(!game.check_columns());
 
@@ -473,7 +377,7 @@ mod tests {
 
     #[test]
     fn test_outcome() {
-        let mut game = Game::new();
+        let mut game = Game::default();
 
         assert_eq!(game.determine_outcome(), Outcome::InProgress);
         assert_eq!(game.current_player(), Player::X);
@@ -485,7 +389,7 @@ mod tests {
         assert_eq!(game.current_player(), Player::X);
         assert_eq!(game.determine_outcome(), Outcome::Win(Player::X));
 
-        let mut game = Game::new();
+        let mut game = Game::default();
 
         assert_eq!(game.determine_outcome(), Outcome::InProgress);
         assert_eq!(game.current_player(), Player::X);
