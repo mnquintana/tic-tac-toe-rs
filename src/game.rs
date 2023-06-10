@@ -524,47 +524,47 @@ mod tests {
     fn test_check_diagonals() {
         let mut game = Game::new();
 
-        assert_eq!(game.check_diagonals(), false);
+        assert!(!game.check_diagonals());
 
         // Primary diagonal
         game.grid.update("A1".parse().unwrap(), Player::X);
         game.grid.update("B2".parse().unwrap(), Player::X);
         game.grid.update("C3".parse().unwrap(), Player::X);
 
-        assert_eq!(game.check_diagonals(), true);
+        assert!(game.check_diagonals());
 
         // Secondary diagonal
         game.grid.update("C1".parse().unwrap(), Player::X);
         game.grid.update("B2".parse().unwrap(), Player::X);
         game.grid.update("A3".parse().unwrap(), Player::X);
 
-        assert_eq!(game.check_diagonals(), true);
+        assert!(game.check_diagonals());
     }
 
     #[test]
     fn test_check_rows() {
         let mut game = Game::new();
 
-        assert_eq!(game.check_rows(), false);
+        assert!(!game.check_rows());
 
         game.grid.update("A1".parse().unwrap(), Player::X);
         game.grid.update("B1".parse().unwrap(), Player::X);
         game.grid.update("C1".parse().unwrap(), Player::X);
 
-        assert_eq!(game.check_rows(), true);
+        assert!(game.check_rows());
     }
 
     #[test]
     fn test_check_columns() {
         let mut game = Game::new();
 
-        assert_eq!(game.check_columns(), false);
+        assert!(!game.check_columns());
 
         game.grid.update("A1".parse().unwrap(), Player::X);
         game.grid.update("A2".parse().unwrap(), Player::X);
         game.grid.update("A3".parse().unwrap(), Player::X);
 
-        assert_eq!(game.check_columns(), true);
+        assert!(game.check_columns());
     }
 
     #[test]
