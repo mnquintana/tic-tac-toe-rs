@@ -160,8 +160,8 @@ impl Grid {
     }
 
     /// Updates a [Space] at a [Location] to be occupied by the provided [Player].
-    pub fn update(&mut self, loc: Location, player: Player) -> bool {
-        let space_to_update = self.get_mut(&loc);
+    pub fn update(&mut self, loc: &Location, player: Player) -> bool {
+        let space_to_update = self.get_mut(loc);
         let default = &mut Space(None);
         let space_to_update = space_to_update.unwrap_or(default);
 
@@ -293,7 +293,7 @@ impl Game {
             let loc = input.parse();
             let did_update = match loc {
                 Err(_) => continue,
-                Ok(loc) => self.make_move(loc),
+                Ok(loc) => self.make_move(&loc),
             };
 
             if did_update {
@@ -321,7 +321,7 @@ impl Game {
     }
 
     /// Makes a move at a grid [Location] for the current [Player].
-    pub fn make_move(&mut self, loc: Location) -> bool {
+    pub fn make_move(&mut self, loc: &Location) -> bool {
         self.grid.update(loc, self.current_player)
     }
 
@@ -498,7 +498,7 @@ mod tests {
 
         assert_eq!(grid.get(&"A1".parse().unwrap()), Some(&Space(None)));
 
-        grid.update("A1".parse().unwrap(), Player::X);
+        grid.update(&"A1".parse().unwrap(), Player::X);
 
         assert_eq!(
             grid.get(&"A1".parse().unwrap()),
@@ -512,7 +512,7 @@ mod tests {
 
         assert_eq!(grid.get_mut(&"A1".parse().unwrap()), Some(&mut Space(None)));
 
-        grid.update("A1".parse().unwrap(), Player::X);
+        grid.update(&"A1".parse().unwrap(), Player::X);
 
         assert_eq!(
             grid.get(&"A1".parse().unwrap()),
@@ -527,16 +527,16 @@ mod tests {
         assert!(!game.check_diagonals());
 
         // Primary diagonal
-        game.grid.update("A1".parse().unwrap(), Player::X);
-        game.grid.update("B2".parse().unwrap(), Player::X);
-        game.grid.update("C3".parse().unwrap(), Player::X);
+        game.grid.update(&"A1".parse().unwrap(), Player::X);
+        game.grid.update(&"B2".parse().unwrap(), Player::X);
+        game.grid.update(&"C3".parse().unwrap(), Player::X);
 
         assert!(game.check_diagonals());
 
         // Secondary diagonal
-        game.grid.update("C1".parse().unwrap(), Player::X);
-        game.grid.update("B2".parse().unwrap(), Player::X);
-        game.grid.update("A3".parse().unwrap(), Player::X);
+        game.grid.update(&"C1".parse().unwrap(), Player::X);
+        game.grid.update(&"B2".parse().unwrap(), Player::X);
+        game.grid.update(&"A3".parse().unwrap(), Player::X);
 
         assert!(game.check_diagonals());
     }
@@ -547,9 +547,9 @@ mod tests {
 
         assert!(!game.check_rows());
 
-        game.grid.update("A1".parse().unwrap(), Player::X);
-        game.grid.update("B1".parse().unwrap(), Player::X);
-        game.grid.update("C1".parse().unwrap(), Player::X);
+        game.grid.update(&"A1".parse().unwrap(), Player::X);
+        game.grid.update(&"B1".parse().unwrap(), Player::X);
+        game.grid.update(&"C1".parse().unwrap(), Player::X);
 
         assert!(game.check_rows());
     }
@@ -560,9 +560,9 @@ mod tests {
 
         assert!(!game.check_columns());
 
-        game.grid.update("A1".parse().unwrap(), Player::X);
-        game.grid.update("A2".parse().unwrap(), Player::X);
-        game.grid.update("A3".parse().unwrap(), Player::X);
+        game.grid.update(&"A1".parse().unwrap(), Player::X);
+        game.grid.update(&"A2".parse().unwrap(), Player::X);
+        game.grid.update(&"A3".parse().unwrap(), Player::X);
 
         assert!(game.check_columns());
     }
@@ -574,9 +574,9 @@ mod tests {
         assert_eq!(game.determine_outcome(), Outcome::InProgress);
         assert_eq!(game.current_player(), Player::X);
 
-        game.make_move("A1".parse().unwrap());
-        game.make_move("A2".parse().unwrap());
-        game.make_move("A3".parse().unwrap());
+        game.make_move(&"A1".parse().unwrap());
+        game.make_move(&"A2".parse().unwrap());
+        game.make_move(&"A3".parse().unwrap());
 
         assert_eq!(game.current_player(), Player::X);
         assert_eq!(game.determine_outcome(), Outcome::Win(Player::X));
@@ -590,9 +590,9 @@ mod tests {
 
         assert_eq!(game.current_player(), Player::O);
 
-        game.make_move("A1".parse().unwrap());
-        game.make_move("B2".parse().unwrap());
-        game.make_move("C3".parse().unwrap());
+        game.make_move(&"A1".parse().unwrap());
+        game.make_move(&"B2".parse().unwrap());
+        game.make_move(&"C3".parse().unwrap());
 
         assert_eq!(game.current_player(), Player::O);
         assert_eq!(game.determine_outcome(), Outcome::Win(Player::O));
