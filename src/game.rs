@@ -127,7 +127,7 @@ impl Display for Grid {
             })
             .collect::<Vec<_>>();
 
-        result.insert(0, format!("    A | B | C"));
+        result.insert(0, "    A | B | C".to_string());
 
         let result = result.join("\n");
 
@@ -146,7 +146,7 @@ impl Grid {
         let Self(grid) = self;
         let Location(x, y) = loc;
 
-        Some(grid.get(*y as usize)?.get(*x as usize)?)
+        grid.get(*y as usize)?.get(*x as usize)
     }
 
     /// Gets a mutable reference to a [Space] on the game board.
@@ -156,7 +156,7 @@ impl Grid {
         let Self(grid) = self;
         let Location(x, y) = loc;
 
-        Some(grid.get_mut(*y as usize)?.get_mut(*x as usize)?)
+        grid.get_mut(*y as usize)?.get_mut(*x as usize)
     }
 
     /// Updates a [Space] at a [Location] to be occupied by the provided [Player].
@@ -365,7 +365,7 @@ impl Game {
             diagonal.iter().all(|&space| {
                 let first_space = diagonal.first().map(|s| **s).unwrap_or_default();
 
-                *space == first_space && !space.0.is_none()
+                *space == first_space && space.0.is_some()
             })
         })
     }
@@ -376,9 +376,9 @@ impl Game {
 
         grid.iter().any(|row| {
             row.iter().all(|space| {
-                let first_space = row.first().map(|s| *s).unwrap_or_default();
+                let first_space = row.first().copied().unwrap_or_default();
 
-                *space == first_space && !space.0.is_none()
+                *space == first_space && space.0.is_some()
             })
         })
     }
@@ -391,8 +391,8 @@ impl Game {
             .map(|i| grid.iter().map(|inner| inner[i]).collect::<Vec<_>>())
             .any(|column| {
                 column.iter().all(|space| {
-                    let first_space = column.first().map(|s| *s).unwrap_or_default();
-                    *space == first_space && !space.0.is_none()
+                    let first_space = column.first().copied().unwrap_or_default();
+                    *space == first_space && space.0.is_some()
                 })
             })
     }
