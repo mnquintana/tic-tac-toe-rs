@@ -95,6 +95,7 @@ impl TicTacToe {
     pub fn new(grid_size: u8) -> Self {
         Self {
             game: Game::new(grid_size),
+            grid_size,
             ..Self::default()
         }
     }
