@@ -167,9 +167,8 @@ impl Grid {
 
     /// Updates a [Space] at a [Location] to be occupied by the provided [Player].
     pub fn update(&mut self, loc: &Location, player: Player) -> Result<(), String> {
-        let space_to_update = self.get_mut(loc);
         let default = &mut Space(None);
-        let space_to_update = space_to_update.unwrap_or(default);
+        let space_to_update = self.get_mut(loc).unwrap_or(default);
 
         if space_to_update.0.is_none() {
             *space_to_update = Space(Some(player));
@@ -301,8 +300,8 @@ impl Game {
 
             let loc = input.parse();
             let did_update = match loc {
-                Err(_) => continue,
                 Ok(loc) => self.make_move(&loc),
+                Err(_) => continue,
             };
 
             if did_update.is_ok() {
