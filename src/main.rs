@@ -15,7 +15,9 @@ fn main() -> io::Result<()> {
         io::stdin().read_line(&mut grid_size)?;
 
         if let Ok(grid_size) = grid_size.trim().parse() {
-            break grid_size;
+            if (1..=26).contains(&grid_size) {
+                break grid_size;
+            }
         }
     };
 
