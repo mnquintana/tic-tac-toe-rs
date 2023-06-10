@@ -22,7 +22,13 @@ impl Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let Grid(grid) = self;
 
-        let column_header = std::iter::once("    A | B | C".to_string());
+        let column_header = (0..self.size())
+            .map(|i| (i + CHAR_OFFSET) as char)
+            .map(|c| c.to_string())
+            .collect::<Vec<_>>()
+            .join(" | ");
+
+        let column_header = std::iter::once(format!("    {column_header}"));
 
         let result = column_header
             .chain(grid.iter().enumerate().map(|(i, row)| {
@@ -54,6 +60,10 @@ impl Grid {
             .collect();
 
         Grid(grid)
+    }
+
+    pub fn size(&self) -> u8 {
+        self.0.len() as u8
     }
 
     pub fn rows(&self) -> impl Iterator<Item = Vec<Space>> + '_ {
