@@ -500,9 +500,7 @@ mod tests {
 
         assert_eq!(grid.get(&"A1".parse().unwrap()), Some(&Space(None)));
 
-        let did_update = grid.update(&"A1".parse().unwrap(), Player::X);
-
-        assert!(did_update.is_ok());
+        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
 
         assert_eq!(
             grid.get(&"A1".parse().unwrap()),
@@ -516,9 +514,7 @@ mod tests {
 
         assert_eq!(grid.get_mut(&"A1".parse().unwrap()), Some(&mut Space(None)));
 
-        let did_update = grid.update(&"A1".parse().unwrap(), Player::X);
-
-        assert!(did_update.is_ok());
+        assert!(grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
 
         assert_eq!(
             grid.get(&"A1".parse().unwrap()),
@@ -528,51 +524,57 @@ mod tests {
 
     #[test]
     fn test_check_diagonals() {
-        let mut game = Game::new();
+        for player in [Player::X, Player::O] {
+            let mut game = Game::new();
 
-        assert!(!game.check_diagonals());
+            assert!(!game.check_diagonals());
 
-        // Primary diagonal
-        assert!(game.grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"B2".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"C3".parse().unwrap(), Player::X).is_ok());
+            // Primary diagonal
+            assert!(game.grid.update(&"A1".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"B2".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"C3".parse().unwrap(), player).is_ok());
 
-        assert!(game.check_diagonals());
+            assert!(game.check_diagonals());
 
-        let mut game = Game::new();
+            let mut game = Game::new();
 
-        // Secondary diagonal
-        assert!(game.grid.update(&"C1".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"B2".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"A3".parse().unwrap(), Player::X).is_ok());
+            // Secondary diagonal
+            assert!(game.grid.update(&"C1".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"B2".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"A3".parse().unwrap(), player).is_ok());
 
-        assert!(game.check_diagonals());
+            assert!(game.check_diagonals());
+        }
     }
 
     #[test]
     fn test_check_rows() {
-        let mut game = Game::new();
+        for player in [Player::X, Player::O] {
+            let mut game = Game::new();
 
-        assert!(!game.check_rows());
+            assert!(!game.check_rows());
 
-        assert!(game.grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"B1".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"C1".parse().unwrap(), Player::X).is_ok());
+            assert!(game.grid.update(&"A1".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"B1".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"C1".parse().unwrap(), player).is_ok());
 
-        assert!(game.check_rows());
+            assert!(game.check_rows());
+        }
     }
 
     #[test]
     fn test_check_columns() {
-        let mut game = Game::new();
+        for player in [Player::X, Player::O] {
+            let mut game = Game::new();
 
-        assert!(!game.check_columns());
+            assert!(!game.check_columns());
 
-        assert!(game.grid.update(&"A1".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"A2".parse().unwrap(), Player::X).is_ok());
-        assert!(game.grid.update(&"A3".parse().unwrap(), Player::X).is_ok());
+            assert!(game.grid.update(&"A1".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"A2".parse().unwrap(), player).is_ok());
+            assert!(game.grid.update(&"A3".parse().unwrap(), player).is_ok());
 
-        assert!(game.check_columns());
+            assert!(game.check_columns());
+        }
     }
 
     #[test]
