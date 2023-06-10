@@ -94,7 +94,7 @@ impl TicTacToe {
     pub fn new() -> Self {
         Self {
             score: Score::new(),
-            game: Game::new(),
+            game: Game::new(3),
         }
     }
 
@@ -125,7 +125,7 @@ impl TicTacToe {
 
             thread::sleep(time::Duration::from_secs(1));
 
-            self.game = Game::new();
+            self.game = Game::new(3);
         }
     }
 }
@@ -144,12 +144,10 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new() -> Self {
-        Self {
-            outcome: Outcome::InProgress,
-            current_player: Player::X,
-            turn: 1,
-            grid: Grid::new(3),
+    pub fn new(grid_size: u8) -> Self {
+        Game {
+            grid: Grid::new(grid_size),
+            ..Game::default()
         }
     }
 
@@ -285,6 +283,17 @@ impl Game {
     }
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Game {
+            outcome: Outcome::InProgress,
+            current_player: Player::X,
+            turn: 1,
+            grid: Grid::new(3),
+        }
+    }
+}
+
 /// Clears the terminal screen. Useful for faking a frame of animation after
 /// making some change.
 fn clear_screen() {
@@ -328,7 +337,7 @@ mod tests {
     #[test]
     fn test_check_diagonals() {
         for player in [Player::X, Player::O] {
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             assert!(!game.check_diagonals());
 
@@ -339,7 +348,7 @@ mod tests {
 
             assert!(game.check_diagonals());
 
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             // Secondary diagonal
             assert!(game.grid.update(&"C1".parse().unwrap(), player).is_ok());
@@ -353,7 +362,7 @@ mod tests {
     #[test]
     fn test_check_rows() {
         for player in [Player::X, Player::O] {
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             assert!(!game.check_rows());
 
@@ -368,7 +377,7 @@ mod tests {
     #[test]
     fn test_check_columns() {
         for player in [Player::X, Player::O] {
-            let mut game = Game::new();
+            let mut game = Game::default();
 
             assert!(!game.check_columns());
 
@@ -382,7 +391,7 @@ mod tests {
 
     #[test]
     fn test_outcome() {
-        let mut game = Game::new();
+        let mut game = Game::default();
 
         assert_eq!(game.determine_outcome(), Outcome::InProgress);
         assert_eq!(game.current_player(), Player::X);
@@ -394,7 +403,7 @@ mod tests {
         assert_eq!(game.current_player(), Player::X);
         assert_eq!(game.determine_outcome(), Outcome::Win(Player::X));
 
-        let mut game = Game::new();
+        let mut game = Game::default();
 
         assert_eq!(game.determine_outcome(), Outcome::InProgress);
         assert_eq!(game.current_player(), Player::X);
