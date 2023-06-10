@@ -41,6 +41,10 @@ impl Grid {
         Grid::default()
     }
 
+    pub fn rows(&self) -> impl Iterator<Item = &[Space; 3]> {
+        self.0.iter()
+    }
+
     /// Gets a read-only reference to a [Space] on the game board.
     /// Useful for reading, but not modifying, the state of the board.
     pub fn get(&self, loc: &Location) -> Option<&Space> {

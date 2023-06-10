@@ -302,9 +302,7 @@ impl Game {
 
     /// Checks if any [Player] has won in any of the rows on the game board.
     pub(self) fn check_rows(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
-        grid.iter().any(|row| {
+        self.grid.rows().any(|row| {
             row.iter().all(|space| {
                 let first_space = row.first().copied().unwrap_or_default();
 
