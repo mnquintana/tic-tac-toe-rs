@@ -202,7 +202,7 @@ pub struct Game {
     current_player: Player,
 
     /// A grid representing the Tic Tac Toe board.
-    pub(self) grid: Grid,
+    grid: Grid,
 }
 
 impl Game {
