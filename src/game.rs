@@ -14,6 +14,18 @@ use std::thread;
 #[derive(Debug, PartialEq, Default, Copy, Clone)]
 pub struct Space(pub Option<Player>);
 
+impl Display for Space {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let space = match self.0 {
+            None => "_",
+            Some(Player::O) => "O",
+            Some(Player::X) => "X",
+        };
+
+        write!(f, "{space}")
+    }
+}
+
 /// One of the 2 possible players: X and O.
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 pub enum Player {

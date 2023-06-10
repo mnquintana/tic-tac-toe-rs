@@ -1,6 +1,9 @@
 use crate::game::{Location, Player, Space};
 use std::fmt::{self, Display};
 
+// To get uppercase A-Z starting at 0
+const CHAR_OFFSET: u8 = 65;
+
 /// Represents the Tic Tac Toe game board.
 #[derive(Debug, PartialEq)]
 pub struct Grid(Vec<Vec<Space>>);
@@ -25,11 +28,7 @@ impl Display for Grid {
             .map(|(i, row)| {
                 let mut row = row
                     .iter()
-                    .map(|space| match space {
-                        Space(None) => "_".to_string(),
-                        Space(Some(Player::O)) => "O".to_string(),
-                        Space(Some(Player::X)) => "X".to_string(),
-                    })
+                    .map(|space| space.to_string())
                     .collect::<Vec<_>>();
 
                 row.insert(0, format!("{}", i + 1));
