@@ -315,6 +315,7 @@ impl Game {
         println!("{}", self.grid);
 
         println!("RESULT: {}", self.outcome);
+
         Ok(())
     }
 
