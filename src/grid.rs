@@ -47,8 +47,11 @@ impl Display for Grid {
 }
 
 impl Grid {
-    pub fn new(size: u32) -> Self {
-        assert!(size > 0, "Grid must have a size greater than 0");
+    pub fn new(size: u8) -> Self {
+        assert!(
+            (1..=26).contains(&size),
+            "Grid size must be between 1 and 26 to allow for alphabetic indexing"
+        );
 
         let grid = (0..size)
             .map(|_| (0..size).map(|_| Space::default()).collect())
@@ -145,6 +148,12 @@ mod tests {
     #[should_panic]
     fn disallows_size_0_grids() {
         let _grid = Grid::new(0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn disallows_size_27_grids() {
+        let _grid = Grid::new(27);
     }
 
     #[test]
