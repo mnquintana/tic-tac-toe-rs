@@ -198,7 +198,7 @@ pub struct Game {
 
     /// A counter tracking what turn number it is. Each player's turn
     /// increments the counter by 1.
-    pub turn: u32,
+    turn: u32,
     current_player: Player,
 
     /// A grid representing the Tic Tac Toe board.
