@@ -309,7 +309,7 @@ impl Default for Game {
 
 /// Clears the terminal screen. Useful for faking a frame of animation after
 /// making some change.
-fn clear_screen() {
+pub fn clear_screen() {
     // Clears the screen by sending a control character,
     // courtesy of https://stackoverflow.com/questions/34837011/how-to-clear-the-terminal-screen-in-rust-after-a-new-line-is-printed
     print!("\x1B[2J\x1B[1;1H");

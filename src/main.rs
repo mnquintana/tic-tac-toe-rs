@@ -1,4 +1,4 @@
-use crate::game::TicTacToe;
+use game::TicTacToe;
 use std::io;
 
 mod game;
@@ -7,6 +7,8 @@ mod location;
 
 fn main() -> io::Result<()> {
     let grid_size = loop {
+        game::clear_screen();
+
         println!("What size grid would you like to play on? (e.g. 3, for a 3x3 grid): ");
 
         let mut grid_size = String::new();
