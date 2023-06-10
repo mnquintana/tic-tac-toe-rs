@@ -1,4 +1,5 @@
-use crate::game::{Location, Player, Space};
+use crate::game::{Player, Space};
+use crate::location::Location;
 use std::fmt::{self, Display};
 
 // To get uppercase A-Z starting at 0

@@ -3,6 +3,7 @@ use std::io;
 
 mod game;
 mod grid;
+mod location;
 
 fn main() -> io::Result<()> {
     let mut game = TicTacToe::new();
