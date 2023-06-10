@@ -407,7 +407,7 @@ impl Game {
 
     /// Checks if any [Player] has any column, row, or diagonal on the game board.
     pub(self) fn check_for_win(&self) -> bool {
-        self.check_columns() && self.check_rows() && self.check_diagonals()
+        self.check_columns() || self.check_rows() || self.check_diagonals()
     }
 
     /// Checks if the game has a Draw.
