@@ -88,13 +88,17 @@ impl Display for Score {
 pub struct TicTacToe {
     score: Score,
     game: Game,
+    grid_size: u8,
 }
 
 impl TicTacToe {
     pub fn new() -> Self {
+        let grid_size = 3;
+
         Self {
             score: Score::new(),
-            game: Game::new(3),
+            game: Game::new(grid_size),
+            grid_size,
         }
     }
 
@@ -125,7 +129,7 @@ impl TicTacToe {
 
             thread::sleep(time::Duration::from_secs(1));
 
-            self.game = Game::new(3);
+            self.game = Game::new(self.grid_size);
         }
     }
 }
