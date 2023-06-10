@@ -25,6 +25,11 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref_name	== 'main'}}
         run: cargo build --locked --release --verbose
 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tic-tac-toe
+          path: target/**/tic-tac-toe
+
   test:
     runs-on: ubuntu-latest
 
