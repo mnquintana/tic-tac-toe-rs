@@ -1,3 +1,4 @@
+use crate::grid::Grid;
 use core::time;
 use regex::Regex;
 use std::collections::HashMap;
@@ -11,7 +12,19 @@ use std::thread;
 ///
 /// A space can only be occupied by one Player, or else occupied by no one.
 #[derive(Debug, PartialEq, Default, Copy, Clone)]
-pub struct Space(Option<Player>);
+pub struct Space(pub Option<Player>);
+
+impl Display for Space {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let space = match self.0 {
+            None => "_",
+            Some(Player::O) => "O",
+            Some(Player::X) => "X",
+        };
+
+        write!(f, "{space}")
+    }
+}
 
 /// One of the 2 possible players: X and O.
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
@@ -53,7 +66,6 @@ impl Display for Location {
         write!(f, "{self:?}")
     }
 }
-
 /// The [Location] could not be parsed from the string.
 #[derive(Debug, Clone)]
 pub struct LocationParseStrError {
@@ -103,82 +115,6 @@ impl FromStr for Location {
         })? - 1;
 
         Ok(Self(column, row))
-    }
-}
-
-/// Represents the Tic Tac Toe game board.
-#[derive(Debug, Default, PartialEq)]
-pub struct Grid([[Space; 3]; 3]);
-
-impl Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Grid(grid) = self;
-
-        let mut result = grid
-            .iter()
-            .enumerate()
-            .map(|(i, row)| {
-                let mut row = row
-                    .iter()
-                    .map(|space| match space {
-                        Space(None) => "_".to_string(),
-                        Space(Some(Player::O)) => "O".to_string(),
-                        Space(Some(Player::X)) => "X".to_string(),
-                    })
-                    .collect::<Vec<_>>();
-
-                row.insert(0, format!("{}", i + 1));
-
-                row.join(" | ")
-            })
-            .collect::<Vec<_>>();
-
-        result.insert(0, "    A | B | C".to_string());
-
-        let result = result.join("\n");
-
-        writeln!(f, "{result}")
-    }
-}
-
-impl Grid {
-    pub fn new() -> Self {
-        Grid::default()
-    }
-
-    /// Gets a read-only reference to a [Space] on the game board.
-    /// Useful for reading, but not modifying, the state of the board.
-    pub fn get(&self, loc: &Location) -> Option<&Space> {
-        let Self(grid) = self;
-        let Location(x, y) = loc;
-
-        grid.get(*y as usize)?.get(*x as usize)
-    }
-
-    /// Gets a mutable reference to a [Space] on the game board.
-    ///
-    /// Useful for making changes to the game board, like a player making a move on their turn.
-    pub fn get_mut(&mut self, loc: &Location) -> Option<&mut Space> {
-        let Self(grid) = self;
-        let Location(x, y) = loc;
-
-        grid.get_mut(*y as usize)?.get_mut(*x as usize)
-    }
-
-    /// Updates a [Space] at a [Location] to be occupied by the provided [Player].
-    pub fn update(&mut self, loc: &Location, player: Player) -> Result<(), String> {
-        let default = &mut Space(None);
-        let space_to_update = self.get_mut(loc).unwrap_or(default);
-
-        if space_to_update.0.is_none() {
-            *space_to_update = Space(Some(player));
-            Ok(())
-        } else {
-            Err(format!(
-                "The space at {loc} is already occupied by {}",
-                space_to_update.0.expect("Space is Some()")
-            ))
-        }
     }
 }
 
@@ -262,11 +198,11 @@ pub struct Game {
 
     /// A counter tracking what turn number it is. Each player's turn
     /// increments the counter by 1.
-    pub turn: u32,
+    turn: u32,
     current_player: Player,
 
     /// A grid representing the Tic Tac Toe board.
-    pub(self) grid: Grid,
+    grid: Grid,
 }
 
 impl Game {
@@ -275,7 +211,7 @@ impl Game {
             outcome: Outcome::InProgress,
             current_player: Player::X,
             turn: 1,
-            grid: Grid::new(),
+            grid: Grid::new(3),
         }
     }
 
@@ -298,17 +234,13 @@ impl Game {
             let mut input = String::new();
             io::stdin().read_line(&mut input)?;
 
-            let loc = input.parse();
-            let did_update = match loc {
-                Ok(loc) => self.make_move(&loc),
-                Err(_) => continue,
-            };
+            if let Ok(loc) = input.parse() {
+                if self.make_move(&loc).is_ok() {
+                    self.outcome = self.determine_outcome();
 
-            if did_update.is_ok() {
-                self.outcome = self.determine_outcome();
-
-                if self.outcome == Outcome::InProgress {
-                    self.advance_turn();
+                    if self.outcome == Outcome::InProgress {
+                        self.advance_turn();
+                    }
                 }
             }
         }
@@ -319,6 +251,7 @@ impl Game {
         println!("{}", self.grid);
 
         println!("RESULT: {}", self.outcome);
+
         Ok(())
     }
 
@@ -348,28 +281,7 @@ impl Game {
 
     /// Checks if any player has won on the two diagonals.
     pub(self) fn check_diagonals(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
-        let primary: Vec<_> = (0..grid.len())
-            .map(|n| {
-                self.grid
-                    .get(&Location(n as u8, n as u8))
-                    .unwrap_or(&Space(None))
-            })
-            .collect();
-
-        let secondary: Vec<_> = (0..grid.len())
-            .rev()
-            .map(|n| {
-                let loc = Location(n as u8, (grid.len() - n - 1) as u8);
-
-                self.grid.get(&loc).unwrap_or(&Space(None))
-            })
-            .collect();
-
-        let diagonals = vec![primary, secondary];
-
-        diagonals.iter().any(|diagonal| {
+        self.grid.diagonals().any(|diagonal| {
             diagonal.iter().all(|&space| {
                 let first_space = diagonal.first().map(|s| **s).unwrap_or_default();
 
@@ -380,9 +292,7 @@ impl Game {
 
     /// Checks if any [Player] has won in any of the rows on the game board.
     pub(self) fn check_rows(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
-        grid.iter().any(|row| {
+        self.grid.rows().any(|row| {
             row.iter().all(|space| {
                 let first_space = row.first().copied().unwrap_or_default();
 
@@ -393,16 +303,12 @@ impl Game {
 
     /// Checks if any [Player] has won in any of the columns on the game board.
     pub(self) fn check_columns(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
-        (0..grid.len())
-            .map(|i| grid.iter().map(|inner| inner[i]).collect::<Vec<_>>())
-            .any(|column| {
-                column.iter().all(|space| {
-                    let first_space = column.first().copied().unwrap_or_default();
-                    *space == first_space && space.0.is_some()
-                })
+        self.grid.columns().any(|column| {
+            column.iter().all(|space| {
+                let first_space = column.first().copied().unwrap_or_default();
+                *space == first_space && space.0.is_some()
             })
+        })
     }
 
     /// Checks if any [Player] has any column, row, or diagonal on the game board.
@@ -414,11 +320,10 @@ impl Game {
     ///
     /// There's a draw if there's no win and every space is occupied.
     pub(self) fn check_for_draw(&self) -> bool {
-        let Grid(grid) = &self.grid;
-
         !self.check_for_win()
-            && !grid
-                .iter()
+            && !self
+                .grid
+                .rows()
                 .any(|row| row.iter().any(|&space| space.0.is_none()))
     }
 
@@ -468,17 +373,6 @@ mod tests {
     }
 
     #[test]
-    fn test_grid_default() {
-        let default_grid = Grid([
-            [Space(None), Space(None), Space(None)],
-            [Space(None), Space(None), Space(None)],
-            [Space(None), Space(None), Space(None)],
-        ]);
-
-        assert_eq!(Grid::default(), default_grid);
-    }
-
-    #[test]
     fn test_location_from_almost_valid_input() {
         assert!("B22222".parse::<Location>().is_err());
         assert!("AA2".parse::<Location>().is_err());
@@ -496,7 +390,7 @@ mod tests {
 
     #[test]
     fn test_grid_get() {
-        let mut grid = Grid::new();
+        let mut grid = Grid::default();
 
         assert_eq!(grid.get(&"A1".parse().unwrap()), Some(&Space(None)));
 
@@ -510,7 +404,7 @@ mod tests {
 
     #[test]
     fn test_grid_get_mut() {
-        let mut grid = Grid::new();
+        let mut grid = Grid::default();
 
         assert_eq!(grid.get_mut(&"A1".parse().unwrap()), Some(&mut Space(None)));
 
