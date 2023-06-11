@@ -128,6 +128,18 @@ impl TicTacToe {
     }
 }
 
+impl Default for TicTacToe {
+    fn default() -> Self {
+        let grid_size = 3;
+
+        Self {
+            score: Score::new(),
+            game: Game::new(grid_size),
+            grid_size,
+        }
+    }
+}
+
 /// A single game of Tic Tac Toe.
 pub struct Game {
     outcome: Outcome,
@@ -139,18 +151,6 @@ pub struct Game {
 
     /// A grid representing the Tic Tac Toe board.
     grid: Grid,
-}
-
-impl Default for TicTacToe {
-    fn default() -> Self {
-        let grid_size = 3;
-
-        Self {
-            score: Score::new(),
-            game: Game::new(grid_size),
-            grid_size,
-        }
-    }
 }
 
 impl Game {
