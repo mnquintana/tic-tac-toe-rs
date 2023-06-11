@@ -107,12 +107,8 @@ impl TicTacToe {
     /// the game loop will drop the currently active [Game] and create a new one.
     pub fn start(&mut self) -> io::Result<()> {
         loop {
-            self.game.start()?;
-
-            let outcome = &self.game.outcome();
-
-            if let Outcome::Win(p) = outcome {
-                let score = self.score.0.entry(*p).or_insert(0);
+            if let Outcome::Win(p) = self.game.start()?.outcome() {
+                let score = self.score.0.entry(p).or_insert(0);
                 *score += 1;
             }
 
@@ -170,7 +166,7 @@ impl Game {
     /// It checks for user input on the command line,
     /// parses it, and passes it on to the rest of the game logic
     /// for each turn, until the game has an [`Outcome`].
-    pub fn start(&mut self) -> io::Result<()> {
+    pub fn start(&mut self) -> io::Result<&Self> {
         while self.outcome == Outcome::InProgress {
             let current_player = self.current_player();
 
@@ -202,7 +198,7 @@ impl Game {
 
         println!("RESULT: {}", self.outcome);
 
-        Ok(())
+        Ok(self)
     }
 
     /// Advances to the next turn.
