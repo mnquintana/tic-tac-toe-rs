@@ -4,6 +4,7 @@ use core::time;
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::io;
+use std::ops::{Deref, DerefMut};
 use std::thread;
 
 /// A space on a Tic Tac Toe [Grid]. During their turn, a [Player] makes
@@ -22,6 +23,20 @@ impl Display for Space {
         };
 
         write!(f, "{space}")
+    }
+}
+
+impl Deref for Space {
+    type Target = Option<Player>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Space {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -231,7 +246,7 @@ impl Game {
             diagonal.iter().all(|&space| {
                 let first_space = diagonal.first().map(|s| **s).unwrap_or_default();
 
-                *space == first_space && space.0.is_some()
+                *space == first_space && space.is_some()
             })
         })
     }
@@ -242,7 +257,7 @@ impl Game {
             row.iter().all(|space| {
                 let first_space = row.first().copied().unwrap_or_default();
 
-                *space == first_space && space.0.is_some()
+                *space == first_space && space.is_some()
             })
         })
     }
@@ -252,7 +267,7 @@ impl Game {
         self.grid.columns().any(|column| {
             column.iter().all(|space| {
                 let first_space = column.first().copied().unwrap_or_default();
-                *space == first_space && space.0.is_some()
+                *space == first_space && space.is_some()
             })
         })
     }
@@ -270,7 +285,7 @@ impl Game {
             && !self
                 .grid
                 .rows()
-                .any(|row| row.iter().any(|&space| space.0.is_none()))
+                .any(|row| row.iter().any(|&space| space.is_none()))
     }
 
     /// Gets the outcome of the game.
