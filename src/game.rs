@@ -4,6 +4,7 @@ use core::time;
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::io;
+use std::ops::{Deref, DerefMut};
 use std::thread;
 
 /// A space on a Tic Tac Toe [Grid]. During their turn, a [Player] makes
@@ -22,6 +23,20 @@ impl Display for Space {
         };
 
         write!(f, "{space}")
+    }
+}
+
+impl Deref for Space {
+    type Target = Option<Player>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Space {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -107,12 +122,8 @@ impl TicTacToe {
     /// the game loop will drop the currently active [Game] and create a new one.
     pub fn start(&mut self) -> io::Result<()> {
         loop {
-            self.game.start()?;
-
-            let outcome = &self.game.outcome();
-
-            if let Outcome::Win(p) = outcome {
-                let score = self.score.0.entry(*p).or_insert(0);
+            if let Outcome::Win(p) = self.game.start()?.outcome() {
+                let score = self.score.0.entry(p).or_insert(0);
                 *score += 1;
             }
 
@@ -132,6 +143,18 @@ impl TicTacToe {
     }
 }
 
+impl Default for TicTacToe {
+    fn default() -> Self {
+        let grid_size = 3;
+
+        Self {
+            score: Score::new(),
+            game: Game::new(grid_size),
+            grid_size,
+        }
+    }
+}
+
 /// A single game of Tic Tac Toe.
 pub struct Game {
     outcome: Outcome,
@@ -143,18 +166,6 @@ pub struct Game {
 
     /// A grid representing the Tic Tac Toe board.
     grid: Grid,
-}
-
-impl Default for TicTacToe {
-    fn default() -> Self {
-        let grid_size = 3;
-
-        Self {
-            score: Score::new(),
-            game: Game::new(grid_size),
-            grid_size,
-        }
-    }
 }
 
 impl Game {
@@ -170,7 +181,7 @@ impl Game {
     /// It checks for user input on the command line,
     /// parses it, and passes it on to the rest of the game logic
     /// for each turn, until the game has an [`Outcome`].
-    pub fn start(&mut self) -> io::Result<()> {
+    pub fn start(&mut self) -> io::Result<&Self> {
         while self.outcome == Outcome::InProgress {
             let current_player = self.current_player();
 
@@ -202,7 +213,7 @@ impl Game {
 
         println!("RESULT: {}", self.outcome);
 
-        Ok(())
+        Ok(self)
     }
 
     /// Advances to the next turn.
@@ -235,7 +246,7 @@ impl Game {
             diagonal.iter().all(|&space| {
                 let first_space = diagonal.first().map(|s| **s).unwrap_or_default();
 
-                *space == first_space && space.0.is_some()
+                *space == first_space && space.is_some()
             })
         })
     }
@@ -246,7 +257,7 @@ impl Game {
             row.iter().all(|space| {
                 let first_space = row.first().copied().unwrap_or_default();
 
-                *space == first_space && space.0.is_some()
+                *space == first_space && space.is_some()
             })
         })
     }
@@ -256,7 +267,7 @@ impl Game {
         self.grid.columns().any(|column| {
             column.iter().all(|space| {
                 let first_space = column.first().copied().unwrap_or_default();
-                *space == first_space && space.0.is_some()
+                *space == first_space && space.is_some()
             })
         })
     }
@@ -274,7 +285,7 @@ impl Game {
             && !self
                 .grid
                 .rows()
-                .any(|row| row.iter().any(|&space| space.0.is_none()))
+                .any(|row| row.iter().any(|&space| space.is_none()))
     }
 
     /// Gets the outcome of the game.

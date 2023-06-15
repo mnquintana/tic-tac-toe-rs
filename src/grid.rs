@@ -120,13 +120,13 @@ impl Grid {
             .get_mut(loc)
             .ok_or(format!("The space at {loc} is out of bounds"))?;
 
-        if space_to_update.0.is_none() {
+        if space_to_update.is_none() {
             *space_to_update = Space(Some(player));
             Ok(())
         } else {
             Err(format!(
                 "The space at {loc} is already occupied by {}",
-                space_to_update.0.expect("Space is Some()")
+                space_to_update.expect("Space is Some()")
             ))
         }
     }
